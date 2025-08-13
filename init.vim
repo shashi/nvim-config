@@ -56,6 +56,11 @@ nmap <silent> <leader>ca :lua vim.lsp.buf.code_action()<CR>
 nmap <silent> <leader>td :lua ToggleDiagnostics()<CR>
 nmap <silent> <leader>ti :lua ToggleInlayHints()<CR>
 
+" Show diagnostic details
+nmap <silent> <leader>e :lua vim.diagnostic.open_float()<CR>
+nmap <silent> [d :lua vim.diagnostic.goto_prev()<CR>
+nmap <silent> ]d :lua vim.diagnostic.goto_next()<CR>
+
 
 " Numbers & UI
 set number
@@ -68,6 +73,11 @@ set background=dark
 syntax enable
 filetype plugin indent on
 colorscheme gruvbox
+
+" Line wrapping
+set wrap
+set linebreak
+set showbreak=↪\ 
 
 " Tabs
 set tabstop=4 shiftwidth=4 expandtab
@@ -95,6 +105,27 @@ require("mason").setup()
 -- Simple LSP setup without mason-lspconfig auto-enable
 local lspconfig = require("lspconfig")
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
+
+-- Configure diagnostics display
+vim.diagnostic.config({
+    virtual_text = {
+        prefix = '●',
+        source = 'if_many',
+        -- Limit the virtual text width
+        format = function(diagnostic)
+            local max_width = 50
+            local message = diagnostic.message
+            if string.len(message) > max_width then
+                return string.sub(message, 1, max_width) .. '...'
+            end
+            return message
+        end,
+    },
+    float = {
+        source = 'always',
+        border = 'rounded',
+    },
+})
 
 -- LSP on_attach function
 local on_attach = function(client, bufnr)
@@ -178,19 +209,19 @@ local cmp = require('cmp')
 cmp.setup({
     enabled = false,  -- Start with completion disabled
     mapping = {
-        ['<Tab>'] = cmp.mapping.select_next_item(),
-        ['<S-Tab>'] = cmp.mapping.select_prev_item(),
+        ['<Tab>'] = cmp.mapping(cmp.mapping.select_next_item(), {'i', 's'}),
+        ['<S-Tab>'] = cmp.mapping(cmp.mapping.select_prev_item(), {'i', 's'}),
         ['<CR>'] = cmp.mapping.confirm({ select = true }),
         ['<C-Space>'] = cmp.mapping.complete(),
     },
-    sources = {
+    sources = cmp.config.sources({
         { name = 'nvim_lsp' },
         { name = 'buffer' },
-    }
+    })
 })
 
--- Global toggle for inlay hints
-_G.inlay_hints_enabled = false
+-- Global completion state
+_G.completion_enabled = false
 
 function ToggleInlayHints()
     local enabled = vim.lsp.inlay_hint.is_enabled()
@@ -204,9 +235,9 @@ end
 
 -- Function to toggle completion
 function ToggleCompletion()
-    local current = require('cmp').config.enabled
-    require('cmp').setup({ enabled = not current })
-    if not current then
+    _G.completion_enabled = not _G.completion_enabled
+    require('cmp').setup({ enabled = _G.completion_enabled })
+    if _G.completion_enabled then
         print("Completion enabled")
     else
         print("Completion disabled")
