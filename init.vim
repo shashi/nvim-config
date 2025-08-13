@@ -35,7 +35,11 @@ let mapleader = " "
 let g:ale_fixers = {
 \   '*': ['remove_trailing_lines', 'trim_whitespace'],
 \   'elixir': ['mix_format'],
-\   'python': ['black', 'ruff']
+\   'python': ['black', 'ruff'],
+\   'javascript': ['prettier'],
+\   'typescript': ['prettier'],
+\   'typescriptreact': ['prettier'],
+\   'javascriptreact': ['prettier']
 \}
 
 let g:ale_fix_on_save = 1
@@ -49,7 +53,7 @@ nmap <silent> <leader>rn :lua vim.lsp.buf.rename()<CR>
 nmap <silent> <leader>ca :lua vim.lsp.buf.code_action()<CR>
 
 " Toggle diagnostics
-nmap <silent> <leader>td :lua vim.diagnostic.enable(not vim.diagnostic.is_enabled())<CR>
+nmap <silent> <leader>td :lua ToggleDiagnostics()<CR>
 nmap <silent> <leader>ti :lua ToggleInlayHints()<CR>
 
 
@@ -67,6 +71,9 @@ colorscheme gruvbox
 
 " Tabs
 set tabstop=4 shiftwidth=4 expandtab
+
+" File type specific settings
+autocmd FileType typescript,typescriptreact,javascript,javascriptreact setlocal tabstop=2 shiftwidth=2
 
 " FZF mappings
 nnoremap <C-p> :Files<CR>
@@ -131,6 +138,41 @@ if vim.fn.isdirectory(vim.fn.expand("~/.local/share/nvim/mason/packages/elixir-l
     })
 end
 
+-- Setup TypeScript LSP
+local tsserver_path = vim.fn.expand("~/.local/share/nvim/mason/bin/typescript-language-server")
+if vim.fn.executable(tsserver_path) == 1 or vim.fn.executable("typescript-language-server") == 1 then
+    lspconfig.ts_ls.setup({
+        on_attach = on_attach,
+        capabilities = capabilities,
+        settings = {
+            typescript = {
+                inlayHints = {
+                    includeInlayParameterNameHints = 'all',
+                    includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+                    includeInlayFunctionParameterTypeHints = true,
+                    includeInlayVariableTypeHints = true,
+                    includeInlayVariableTypeHintsWhenTypeMatchesName = false,
+                    includeInlayPropertyDeclarationTypeHints = true,
+                    includeInlayFunctionLikeReturnTypeHints = true,
+                    includeInlayEnumMemberValueHints = true,
+                }
+            },
+            javascript = {
+                inlayHints = {
+                    includeInlayParameterNameHints = 'all',
+                    includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+                    includeInlayFunctionParameterTypeHints = true,
+                    includeInlayVariableTypeHints = true,
+                    includeInlayVariableTypeHintsWhenTypeMatchesName = false,
+                    includeInlayPropertyDeclarationTypeHints = true,
+                    includeInlayFunctionLikeReturnTypeHints = true,
+                    includeInlayEnumMemberValueHints = true,
+                }
+            }
+        },
+    })
+end
+
 -- Setup nvim-cmp for completion
 local cmp = require('cmp')
 cmp.setup({
@@ -168,6 +210,17 @@ function ToggleCompletion()
         print("Completion enabled")
     else
         print("Completion disabled")
+    end
+end
+
+-- Function to toggle diagnostics
+function ToggleDiagnostics()
+    local enabled = vim.diagnostic.is_enabled()
+    vim.diagnostic.enable(not enabled)
+    if not enabled then
+        print("Diagnostics enabled")
+    else
+        print("Diagnostics disabled")
     end
 end
 

@@ -11,11 +11,11 @@ This config prioritizes speed by disabling heavy features by default. Everything
 ## Features
 
 - **Plugin Manager**: vim-plug (lightweight and fast)
-- **LSP Support**: Native nvim-lspconfig with basedpyright for Python
+- **LSP Support**: Native nvim-lspconfig with basedpyright for Python, tsserver for TypeScript/JavaScript
 - **Fuzzy Finding**: fzf integration
-- **Linting**: ALE with black/ruff for Python
+- **Linting**: ALE with black/ruff for Python, prettier for TypeScript/JavaScript
 - **Colorscheme**: Gruvbox dark
-- **Languages**: Python (with type hints), Elixir
+- **Languages**: Python (with type hints), TypeScript/JavaScript (with type hints), Elixir
 
 ## Key Mappings
 
@@ -56,26 +56,34 @@ Leader key is set to `<Space>`.
    :PlugInstall
    ```
 
-5. Install Python LSP server:
+5. Install LSP servers:
    ```vim
    :Mason
    ```
-   Then search for and install `basedpyright`
+   Then search for and install:
+   - `basedpyright` (for Python)
+   - `typescript-language-server` (for TypeScript/JavaScript)
 
-6. Install Python formatters (optional):
+6. Install formatters (optional):
    ```bash
+   # Python formatters
    pip install black ruff
+   
+   # TypeScript/JavaScript formatter
+   npm install -g prettier
    ```
 
 ## Usage
 
-1. Open a Python file
+1. Open a Python or TypeScript file
 2. Code is fast by default (no heavy features running)
 3. When you need type checking:
    - Press `<Space>ti` to see type annotations
    - Press `<Space>td` to see errors
    - Press `<Space>tc` for auto-completion
 4. Toggle features off when done to maintain speed
+
+The same shortcuts work for both Python and TypeScript!
 
 ## Dependencies
 
