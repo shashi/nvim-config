@@ -1,0 +1,11 @@
+# Vim
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Plugin directories (these are installed locally)
+plugged/
+.netrwhist
