@@ -161,11 +161,13 @@ if vim.fn.executable("basedpyright-langserver") == 1 then
 end
 
 -- Setup Elixir LSP manually
-if vim.fn.isdirectory(vim.fn.expand("~/.local/share/nvim/mason/packages/elixir-ls")) == 1 then
+local elixirls_path = vim.fn.expand("~/.local/share/nvim/mason/bin/elixir-ls")
+if vim.fn.executable(elixirls_path) == 1 then
     lspconfig.elixirls.setup({
         on_attach = on_attach,
         capabilities = capabilities,
-        cmd = { vim.fn.expand("~/.local/share/nvim/mason/bin/elixir-ls") },
+        cmd = { elixirls_path },
+        root_dir = lspconfig.util.root_pattern("mix.exs", ".git") or vim.fn.getcwd,
     })
 end
 
@@ -260,3 +262,6 @@ EOF
 " Additional toggle commands
 nmap <silent> <leader>tc :lua ToggleCompletion()<CR>
 nmap <silent> <leader>ta :ALEToggle<CR>
+
+" Debug commands
+nmap <silent> <leader>lsp :LspInfo<CR>
