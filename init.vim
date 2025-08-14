@@ -255,7 +255,7 @@ cmp.setup({
 -- Global state for toggles
 _G.completion_enabled = false
 _G.dialyzer_enabled = false
-_G.diagnostics_enabled = false
+_G.diagnostics_enabled = true  -- Start with diagnostics ON
 _G.inlay_hints_enabled = false
 
 -- Function to toggle Dialyzer
