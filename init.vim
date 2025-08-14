@@ -45,6 +45,12 @@ let g:ale_fixers = {
 let g:ale_fix_on_save = 1
 let g:ale_enabled = 0  " Start with ALE disabled for performance
 
+" Preserve undo history when formatting with ALE
+augroup ALEProgress
+    autocmd!
+    autocmd User ALEFixPre  try | silent undojoin | catch | endtry
+augroup END
+
 " LSP mappings (we'll configure these in lua)
 nmap <silent> gd :lua vim.lsp.buf.definition()<CR>
 nmap <silent> gr :lua vim.lsp.buf.references()<CR>
@@ -83,6 +89,12 @@ doautocmd ColorScheme
 set wrap
 set linebreak
 set showbreak=↪\
+
+" Persistent undo
+set undofile
+set undodir=~/.config/nvim/undodir
+set undolevels=10000
+set undoreload=10000
 
 " Scroll settings
 set scrolloff=4
@@ -142,7 +154,7 @@ vim.diagnostic.config({
 local on_attach = function(client, bufnr)
     -- Apply current global state to new buffers
     vim.diagnostic.enable(_G.diagnostics_enabled, { bufnr = bufnr })
-    
+
     -- Apply inlay hints state if supported
     if client.server_capabilities.inlayHintProvider then
         vim.lsp.inlay_hint.enable(_G.inlay_hints_enabled, { bufnr = bufnr })
@@ -183,6 +195,7 @@ if vim.fn.executable(elixirls_path) == 1 then
             elixirLS = {
                 dialyzerEnabled = false,  -- Start with Dialyzer disabled for performance
                 fetchDeps = false,        -- Don't fetch deps automatically
+                incrementalDialyzer = false
             }
         }
     })
