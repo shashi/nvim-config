@@ -74,10 +74,16 @@ syntax enable
 filetype plugin indent on
 colorscheme gruvbox
 
+" Make cursor more visible
+set guicursor=n-v-c:block-Cursor,i:ver25-CursorInsert,r-cr-o:hor20
+autocmd ColorScheme * highlight CursorInsert guibg=#fabd2f guifg=#282828
+autocmd ColorScheme * highlight Cursor guibg=#ebdbb2 guifg=#282828
+doautocmd ColorScheme
+
 " Line wrapping
 set wrap
 set linebreak
-set showbreak=↪\ 
+set showbreak=↪\
 
 " Tabs
 set tabstop=4 shiftwidth=4 expandtab
@@ -131,7 +137,7 @@ vim.diagnostic.config({
 local on_attach = function(client, bufnr)
     -- Disable diagnostics by default
     vim.diagnostic.enable(false, { bufnr = bufnr })
-    
+
     -- Disable inlay hints by default
     if client.server_capabilities.inlayHintProvider then
         vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
@@ -168,6 +174,12 @@ if vim.fn.executable(elixirls_path) == 1 then
         capabilities = capabilities,
         cmd = { elixirls_path },
         root_dir = lspconfig.util.root_pattern("mix.exs", ".git") or vim.fn.getcwd,
+        settings = {
+            elixirLS = {
+                dialyzerEnabled = false,  -- Start with Dialyzer disabled for performance
+                fetchDeps = false,        -- Don't fetch deps automatically
+            }
+        }
     })
 end
 
@@ -224,6 +236,35 @@ cmp.setup({
 
 -- Global completion state
 _G.completion_enabled = false
+_G.dialyzer_enabled = false
+
+-- Function to toggle Dialyzer
+function ToggleDialyzer()
+    _G.dialyzer_enabled = not _G.dialyzer_enabled
+    for _, client in pairs(vim.lsp.get_active_clients()) do
+        if client.name == "elixirls" then
+            -- Update the settings
+            if not client.config.settings then
+                client.config.settings = {}
+            end
+            if not client.config.settings.elixirLS then
+                client.config.settings.elixirLS = {}
+            end
+            client.config.settings.elixirLS.dialyzerEnabled = _G.dialyzer_enabled
+
+            -- Send the notification
+            client.notify("workspace/didChangeConfiguration", {
+                settings = client.config.settings
+            })
+
+        end
+    end
+    if _G.dialyzer_enabled then
+        print("Dialyzer enabled (may take time on first run)")
+    else
+        print("Dialyzer disabled")
+    end
+end
 
 function ToggleInlayHints()
     local enabled = vim.lsp.inlay_hint.is_enabled()
@@ -262,6 +303,5 @@ EOF
 " Additional toggle commands
 nmap <silent> <leader>tc :lua ToggleCompletion()<CR>
 nmap <silent> <leader>ta :ALEToggle<CR>
+nmap <silent> <leader>tz :lua ToggleDialyzer()<CR>
 
-" Debug commands
-nmap <silent> <leader>lsp :LspInfo<CR>
