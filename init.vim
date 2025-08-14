@@ -64,7 +64,6 @@ nmap <silent> ]d :lua vim.diagnostic.goto_next()<CR>
 
 " Numbers & UI
 set number
-set relativenumber
 set mouse=a
 set clipboard^=unnamedplus
 set cursorline
@@ -84,6 +83,12 @@ doautocmd ColorScheme
 set wrap
 set linebreak
 set showbreak=↪\
+
+" Scroll settings
+set scrolloff=4
+set sidescrolloff=4
+
+set lazyredraw       " Don't redraw during macros/commands
 
 " Tabs
 set tabstop=4 shiftwidth=4 expandtab
@@ -135,12 +140,12 @@ vim.diagnostic.config({
 
 -- LSP on_attach function
 local on_attach = function(client, bufnr)
-    -- Disable diagnostics by default
-    vim.diagnostic.enable(false, { bufnr = bufnr })
-
-    -- Disable inlay hints by default
+    -- Apply current global state to new buffers
+    vim.diagnostic.enable(_G.diagnostics_enabled, { bufnr = bufnr })
+    
+    -- Apply inlay hints state if supported
     if client.server_capabilities.inlayHintProvider then
-        vim.lsp.inlay_hint.enable(false, { bufnr = bufnr })
+        vim.lsp.inlay_hint.enable(_G.inlay_hints_enabled, { bufnr = bufnr })
     end
 end
 
@@ -234,9 +239,11 @@ cmp.setup({
     })
 })
 
--- Global completion state
+-- Global state for toggles
 _G.completion_enabled = false
 _G.dialyzer_enabled = false
+_G.diagnostics_enabled = false
+_G.inlay_hints_enabled = false
 
 -- Function to toggle Dialyzer
 function ToggleDialyzer()
@@ -267,9 +274,9 @@ function ToggleDialyzer()
 end
 
 function ToggleInlayHints()
-    local enabled = vim.lsp.inlay_hint.is_enabled()
-    vim.lsp.inlay_hint.enable(not enabled)
-    if not enabled then
+    _G.inlay_hints_enabled = not _G.inlay_hints_enabled
+    vim.lsp.inlay_hint.enable(_G.inlay_hints_enabled)
+    if _G.inlay_hints_enabled then
         print("Inlay hints enabled")
     else
         print("Inlay hints disabled")
@@ -289,9 +296,9 @@ end
 
 -- Function to toggle diagnostics
 function ToggleDiagnostics()
-    local enabled = vim.diagnostic.is_enabled()
-    vim.diagnostic.enable(not enabled)
-    if not enabled then
+    _G.diagnostics_enabled = not _G.diagnostics_enabled
+    vim.diagnostic.enable(_G.diagnostics_enabled)
+    if _G.diagnostics_enabled then
         print("Diagnostics enabled")
     else
         print("Diagnostics disabled")
@@ -304,4 +311,3 @@ EOF
 nmap <silent> <leader>tc :lua ToggleCompletion()<CR>
 nmap <silent> <leader>ta :ALEToggle<CR>
 nmap <silent> <leader>tz :lua ToggleDialyzer()<CR>
-
